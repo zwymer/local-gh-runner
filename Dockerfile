@@ -22,7 +22,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache
 RUN mkdir -p /opt/hostedtoolcache
 
-RUN adduser --disabled-password --gecos "" --uid 1000 runner \
+RUN userdel -r ubuntu 2>/dev/null || true \
+    && useradd -m -s /bin/bash -u 1000 runner \
     && usermod -aG sudo runner \
     && echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
