@@ -60,6 +60,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       libgtk-3-dev \
       libsoup-3.0-dev \
       javascriptcoregtk-4.1-dev \
+      libfuse2t64 \
+      file \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # ── Node.js 24 ──────────────────────────────────────────────────────
