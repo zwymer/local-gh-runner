@@ -26,6 +26,21 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
     && apt-get update && apt-get install -y --no-install-recommends gh \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Docker client + buildx + compose plugins. We talk to the *host* daemon via
+# the /var/run/docker.sock that docker-compose.runner.yml mounts in, so no
+# dockerd is needed inside the runner — only the CLI. Without this,
+# docker/login-action and docker/build-push-action fail with
+#   "Unable to locate executable file: docker"
+RUN install -m 0755 -d /etc/apt/keyrings \
+    && curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+        -o /etc/apt/keyrings/docker.asc \
+    && chmod a+r /etc/apt/keyrings/docker.asc \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu noble stable" \
+        | tee /etc/apt/sources.list.d/docker.list > /dev/null \
+    && apt-get update && apt-get install -y --no-install-recommends \
+        docker-ce-cli docker-buildx-plugin docker-compose-plugin \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 # ── GitHub Actions runner ────────────────────────────────────────────
 ENV AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache
 RUN mkdir -p /opt/hostedtoolcache
