@@ -13,9 +13,11 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ARG GH_RUNNER_VERSION=2.334.0
 ARG TARGETPLATFORM=linux/amd64
 
-# dumb-init + gosu (lightweight PID-1 and user-step-down)
+# dumb-init + gosu (lightweight PID-1 and user-step-down). unzip is required by
+# actions that download zipped release archives (e.g. hashicorp/setup-terraform,
+# which otherwise fails with "Unable to locate executable file: unzip").
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      ca-certificates curl jq dumb-init gosu sudo git \
+      ca-certificates curl jq dumb-init gosu sudo git unzip \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # GitHub CLI (used by release-tag workflow to trigger builds)
