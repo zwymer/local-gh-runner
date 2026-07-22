@@ -44,9 +44,20 @@ services:
     volumes:
       - runner-workdir-2:/_work
 
+  # Dedicated runner for protected terraform/deploy jobs (runs-on: edtok-production).
+  runner-prod:
+    <<: *runner-defaults
+    container_name: gh-runner-prod
+    environment:
+      <<: *runner-env
+      LABELS: self-hosted,Linux,X64,docker,local,edtok-production
+    volumes:
+      - runner-workdir-prod:/_work
+
 volumes:
   runner-workdir-1:
   runner-workdir-2:
+  runner-workdir-prod:
 
 networks:
   runner-net:
