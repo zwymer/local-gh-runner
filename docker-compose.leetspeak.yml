@@ -1,0 +1,64 @@
+# Second fleet: leetspeak runners, parallel to the EdTok fleet defined in
+# docker-compose.yml (which .env currently points at zwymer/EdTok).
+# Reuses the same GitHub App credentials via the env_file in place — only the
+# target repo, runner names, and container names are overridden here.
+#
+# Start:
+#   docker compose -p leetspeak-gh-runner -f docker-compose.yml -f docker-compose.leetspeak.yml up -d
+# Stop:
+#   docker compose -p leetspeak-gh-runner -f docker-compose.yml -f docker-compose.leetspeak.yml down
+
+name: leetspeak-gh-runner
+
+# leetspeak CI jobs build images (buildx) and boot compose stacks (E2E/smoke),
+# so unlike the EdTok fleet these runners need the host Docker socket.
+services:
+  runner-1:
+    container_name: ls-gh-runner-1
+    environment:
+      REPO_URL: https://github.com/zwymer/leetspeak
+      RUNNER_NAME_PREFIX: leetspeak-local
+      # The runner invokes the host daemon through Docker Desktop's socket.
+      # Its checkout therefore must live at a path that is identically visible
+      # to the daemon; a named /_work volume silently turns file binds in
+      # docker-compose.yml into empty directories.
+      RUNNER_WORKDIR: /srv/leetspeak-runner/workdir-1
+    volumes: !override
+      - /var/run/docker.sock:/var/run/docker.sock
+      - type: bind
+        source: /srv/leetspeak-runner/workdir-1
+        target: /srv/leetspeak-runner/workdir-1
+        bind:
+          create_host_path: true
+
+  runner-2:
+    container_name: ls-gh-runner-2
+    environment:
+      REPO_URL: https://github.com/zwymer/leetspeak
+      RUNNER_NAME_PREFIX: leetspeak-local
+      RUNNER_WORKDIR: /srv/leetspeak-runner/workdir-2
+    volumes: !override
+      - /var/run/docker.sock:/var/run/docker.sock
+      - type: bind
+        source: /srv/leetspeak-runner/workdir-2
+        target: /srv/leetspeak-runner/workdir-2
+        bind:
+          create_host_path: true
+
+  # Third general-purpose leetspeak runner: reuses the runner-prod service slot
+  # but drops the edtok-production label — leetspeak has no protected-deploy
+  # runner class.
+  runner-prod:
+    container_name: ls-gh-runner-3
+    environment:
+      REPO_URL: https://github.com/zwymer/leetspeak
+      RUNNER_NAME_PREFIX: leetspeak-local
+      LABELS: self-hosted,Linux,X64,docker,local
+      RUNNER_WORKDIR: /srv/leetspeak-runner/workdir-3
+    volumes: !override
+      - /var/run/docker.sock:/var/run/docker.sock
+      - type: bind
+        source: /srv/leetspeak-runner/workdir-3
+        target: /srv/leetspeak-runner/workdir-3
+        bind:
+          create_host_path: true

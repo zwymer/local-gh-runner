@@ -10,7 +10,7 @@ LABEL maintainer="zwymer"
 ENV DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-ARG GH_RUNNER_VERSION=2.334.0
+ARG GH_RUNNER_VERSION=2.336.0
 ARG TARGETPLATFORM=linux/amd64
 
 # dumb-init + gosu (lightweight PID-1 and user-step-down). unzip is required by
