@@ -1,0 +1,77 @@
+# Shared definition for every local runner fleet. NOT usable on its own.
+#
+# This file deliberately carries no fleet identity: its project name is a
+# sentinel that matches nothing real, and it names no containers. Choosing a
+# fleet is therefore always explicit, and this directory no longer has a
+# *default* fleet that a flagless `docker compose down` can destroy.
+#
+# That default is not hypothetical. The EdTok fleet - including the sole
+# edtok-production deploy runner - vanished between 2026-08-31 and 2026-09-01
+# with no reboot and no crash: containers, project-built images and named
+# volumes all gone, while unrelated images survived. That is the exact blast
+# radius of a scoped teardown of this project, and back then a bare
+# `docker compose down` in this directory *was* the EdTok fleet. Nobody noticed
+# until a production promotion had no runner to schedule on.
+#
+# Use the wrapper, which cannot get the flags wrong:
+#   ./fleet.ps1 edtok up -d          # PowerShell
+#   ./fleet.sh  edtok up -d          # Git Bash
+#
+# The raw form, if you must:
+#   docker compose -p local-gh-runner \
+#     -f compose.base.yml -f compose.edtok.yml up -d
+#
+# Setup: copy .env.example to .env and fill in your values.
+
+name: runner-base-select-a-fleet
+
+x-runner: &runner-defaults
+  build: .
+  restart: unless-stopped
+  env_file:
+    - .env
+  environment: &runner-env
+    RUNNER_SCOPE: repo
+    LABELS: self-hosted,Linux,X64,docker,local
+    EPHEMERAL: "true"
+    DISABLE_AUTO_UPDATE: "true"
+  security_opt:
+    - label:disable
+    - no-new-privileges:true
+  networks:
+    - runner-net
+  deploy:
+    resources:
+      limits:
+        cpus: "4"
+        memory: 8G
+
+# `restart: unless-stopped` brings these back after an engine restart, but it
+# cannot resurrect a *removed* container - which is the failure that actually
+# happened. The watchdog (watchdog.ps1) covers that gap.
+services:
+  runner-1:
+    <<: *runner-defaults
+    volumes:
+      - runner-workdir-1:/_work
+
+  runner-2:
+    <<: *runner-defaults
+    volumes:
+      - runner-workdir-2:/_work
+
+  # Third slot. The EdTok fleet gives this one the protected deploy label; the
+  # leetspeak fleet uses it as a third general-purpose runner.
+  runner-prod:
+    <<: *runner-defaults
+    volumes:
+      - runner-workdir-prod:/_work
+
+volumes:
+  runner-workdir-1:
+  runner-workdir-2:
+  runner-workdir-prod:
+
+networks:
+  runner-net:
+    driver: bridge

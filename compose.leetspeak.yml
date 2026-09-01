@@ -1,12 +1,14 @@
 # Second fleet: leetspeak runners, parallel to the EdTok fleet defined in
-# docker-compose.yml (which .env currently points at zwymer/EdTok).
+# compose.edtok.yml. Both layer over compose.base.yml.
 # Reuses the same GitHub App credentials via the env_file in place — only the
 # target repo, runner names, and container names are overridden here.
 #
-# Start:
-#   docker compose -p leetspeak-gh-runner -f docker-compose.yml -f docker-compose.leetspeak.yml up -d
-# Stop:
-#   docker compose -p leetspeak-gh-runner -f docker-compose.yml -f docker-compose.leetspeak.yml down
+# Start:  ./fleet.ps1 leetspeak up -d
+# Stop:   ./fleet.ps1 leetspeak down
+#
+# Raw form:
+#   docker compose -p leetspeak-gh-runner \
+#     -f compose.base.yml -f compose.leetspeak.yml up -d
 
 name: leetspeak-gh-runner
 
@@ -21,7 +23,7 @@ services:
       # The runner invokes the host daemon through Docker Desktop's socket.
       # Its checkout therefore must live at a path that is identically visible
       # to the daemon; a named /_work volume silently turns file binds in
-      # docker-compose.yml into empty directories.
+      # compose.base.yml into empty directories.
       RUNNER_WORKDIR: /srv/leetspeak-runner/workdir-1
     volumes: !override
       - /var/run/docker.sock:/var/run/docker.sock

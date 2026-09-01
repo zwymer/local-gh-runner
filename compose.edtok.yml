@@ -1,0 +1,24 @@
+# EdTok fleet (zwymer/EdTok). Layers over compose.base.yml.
+#
+# Start:  ./fleet.ps1 edtok up -d
+# Stop:   ./fleet.ps1 edtok down
+#
+# REPO_URL and RUNNER_NAME_PREFIX come from .env, which currently points at
+# zwymer/EdTok. Everything EdTok-specific beyond that lives here.
+
+name: local-gh-runner
+
+services:
+  runner-1:
+    container_name: gh-runner-1
+
+  runner-2:
+    container_name: gh-runner-2
+
+  # Dedicated runner for protected terraform/deploy jobs (runs-on:
+  # edtok-production). EdTok's deploy.yml schedules its promotion job on this
+  # label alone, so if this container is missing, production cannot ship.
+  runner-prod:
+    container_name: gh-runner-prod
+    environment:
+      LABELS: self-hosted,Linux,X64,docker,local,edtok-production
